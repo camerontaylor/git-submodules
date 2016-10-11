@@ -10,23 +10,24 @@ namespace :git do
   task :clone do
     ensure!(:repository)
     ensure!(:deploy_to)
+    ensure!(:branch)
     if set?(:commit)
       comment %{Using git commit \\"#{fetch(:commit)}\\"}
       command %{git clone "#{fetch(:repository)}" . --recursive}
       command %{git checkout -b current_release "#{fetch(:commit)}" --force}
     else
       command %{
-        if [ ! -d "#{deploy_to}/scm" ]; then
+        if [ ! -d "#{fetch(:deploy_to)}/scm" ]; then
           echo "-----> Cloning the Git repository"
-          #{echo_cmd %[git clone "#{repository!}" "#{deploy_to}/scm" --recursive && (cd "#{deploy_to}/scm" && git checkout -b deploy #{branch})]}
+          #{echo_cmd %[git clone "#{fetch(:repository)}" "#{fetch(:deploy_to)}/scm" --recursive && (cd "#{fetch(:deploy_to)}/scm" && git checkout -b deploy #{fetch(:branch)})]}
         else
           echo "-----> Fetching new git commits"
-          #{echo_cmd %[(cd "#{deploy_to}/scm" && git fetch "#{repository!}" "#{branch}:#{branch}" --force && git reset --hard #{branch})]}
+          #{echo_cmd %[(cd "#{fetch(:deploy_to)}/scm" && git fetch "#{fetch(:repository)}" "#{fetch(:branch)}:#{fetch(:branch)}" --force && git reset --hard #{fetch(:branch)})]}
         fi &&
         echo "-----> Updating git submodules" &&
-        #{echo_cmd %[(cd "#{deploy_to}/scm" && git submodule init && git submodule sync && git submodule update --init --recursive)]} &&
-        echo "-----> Copying to release path (branch: '#{branch}')" &&
-        #{echo_cmd %[rsync -lrpt "#{deploy_to}/scm/" .]} &&
+        #{echo_cmd %[(cd "#{fetch(:deploy_to)}/scm" && git submodule init && git submodule sync && git submodule update --init --recursive)]} &&
+        echo "-----> Copying to release path (branch: '#{fetch(:branch)}')" &&
+        #{echo_cmd %[rsync -lrpt "#{fetch(:deploy_to)}/scm/" .]}
       }, quiet: true
     end
 
@@ -36,6 +37,11 @@ namespace :git do
     if fetch(:remove_git_dir)
       command %{rm -rf .git}
     end
+  end
+
+  task :remove_cache do
+    comment "Removing git scm directory"
+    command %{rm -rf "#{fetch(:deploy_to)}/scm" }
   end
 
   task :revision do
