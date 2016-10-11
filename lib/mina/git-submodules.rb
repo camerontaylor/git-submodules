@@ -22,7 +22,7 @@ namespace :git do
           #{echo_cmd %[git clone "#{fetch(:repository)}" "#{fetch(:deploy_to)}/scm" --recursive && (cd "#{fetch(:deploy_to)}/scm" && git checkout -b deploy #{fetch(:branch)})]}
         else
           echo "-----> Fetching new git commits"
-          #{echo_cmd %[(cd "#{fetch(:deploy_to)}/scm" && git fetch "#{fetch(:repository)}" "#{fetch(:branch)}:#{fetch(:branch)}" --force && git reset --hard #{fetch(:branch)})]}
+          #{echo_cmd %[(cd "#{fetch(:deploy_to)}/scm" && git fetch "#{fetch(:repository)}" "#{fetch(:branch)}:#{fetch(:branch)}" --force -u && git reset --hard #{fetch(:branch)})]}
         fi &&
         echo "-----> Updating git submodules" &&
         #{echo_cmd %[(cd "#{fetch(:deploy_to)}/scm" && git submodule init && git submodule sync && git submodule update --init --recursive)]} &&
