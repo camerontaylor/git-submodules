@@ -27,7 +27,7 @@ namespace :git do
         echo "-----> Updating git submodules" &&
         #{echo_cmd %[(cd "#{fetch(:deploy_to)}/scm" && git submodule init && git submodule sync && git submodule update --init --recursive)]} &&
         echo "-----> Copying to release path (branch: '#{fetch(:branch)}')" &&
-        #{echo_cmd %[rsync -lrpt "#{fetch(:deploy_to)}/scm/" .]}
+        #{echo_cmd %[rsync -lrpt --exclude "*/.git/" "#{fetch(:deploy_to)}/scm/" .]}
       }, quiet: true
     end
 
@@ -39,6 +39,7 @@ namespace :git do
     end
   end
 
+  desc 'Removes the old git scm directory'
   task :remove_cache do
     comment "Removing git scm directory"
     command %{rm -rf "#{fetch(:deploy_to)}/scm" }
